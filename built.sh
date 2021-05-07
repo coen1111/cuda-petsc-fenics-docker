@@ -22,7 +22,7 @@ docker build -t "${OS_BASE_CUDA_RUNTIME_IMAGE_TAG}" --build-arg "PREV_IMAGE_TAG=
 
 # 4. Extend previous image with nvidia/cuda devel image which receives ARG=PREV_IMAGE_TAG
 export OS_BASE_CUDA_RUNTIME_DEVEL_IMAGE_TAG="${OS_BASE_CUDA_RUNTIME_IMAGE_TAG}-devel"
-docker build -t "${OS_BASE_CUDA_RUNTIME_DEVEL_IMAGE_TAG}" --build-arg "PREV_IMAGE_TAG=${OS_BASE_CUDA_RUNTIME_IMAGE_TAG}" "${HOME_DIR_CUDA}/dockerfiles/${CUDA_VERSION}/${OS}-${ARCH}/devel"
+docker build -t "${OS_BASE_CUDA_RUNTIME_DEVEL_IMAGE_TAG}" --build-arg "PREV_IMAGE_TAG=${OS_BASE_CUDA_RUNTIME_IMAGE_TAG}" "${HOME_DIR}/dockerfiles/${CUDA_VERSION}/${OS}-${ARCH}/devel"
 
 # 5. Extend previous image with PETSc + cuda support using a modified fenics dev-env Dockerfile which receives ARG=PREV_IMAGE_TAG
 export OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_IMAGE_TAG=${OS_BASE_CUDA_RUNTIME_DEVEL_IMAGE_TAG}-PETSc
