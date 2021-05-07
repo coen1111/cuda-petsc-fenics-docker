@@ -6,7 +6,10 @@
 # Authors:
 # Jack S. Hale <jack.hale@uni.lu>
 
-FROM quay.io/fenicsproject/dev-env:latest
+#Adjusted
+ARG PREV_IMAGE_TAG
+
+FROM ${PREV_IMAGE_TAG}
 MAINTAINER fenics-project <fenics-support@googlegroups.com>
 
 USER root 
@@ -23,7 +26,7 @@ RUN /bin/bash -c "PIP_NO_CACHE_DIR=off ${FENICS_PYTHON} -m pip install 'fenics${
                   git checkout ${DOLFIN_VERSION} && \
                   mkdir build && \
                   cd build && \
-                  cmake ../ && \
+                  cmake ../ -DDOLFIN_SKIP_BUILD_TESTS=true. && \
                   make && \
                   make install && \
                   mv /usr/local/share/dolfin/demo /tmp/demo && \

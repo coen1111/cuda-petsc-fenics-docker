@@ -9,7 +9,10 @@
 # Garth N. Wells <gnw20@cam.ac.uk>
 # Jan Blechta <blechta@karlin.mff.cuni.cz>
 
-FROM quay.io/fenicsproject/base:latest
+#Adjusted 
+ARG PREV_IMAGE_TAG
+
+FROM ${PREV_IMAGE_TAG}
 MAINTAINER fenics-project <fenics-support@googlegroups.org>
 
 USER root
@@ -106,6 +109,7 @@ RUN apt-get -qq update && \
                 --FOPTFLAGS="-O2" \
                 --with-fortran-bindings=no \
                 --with-debugging=0 \
+                --with-cuda=1 \
                 --download-blacs \
                 --download-hypre \
                 --download-metis \
