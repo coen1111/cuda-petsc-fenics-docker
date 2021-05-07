@@ -94,17 +94,17 @@ BIND_MPL="-p ${DOCKER_BIND_IP}:${BIND_PORT_RANGE}:${DOCKER_MPL_PORT}"
 
 help ()
 {
-    echo "Usage: fenicsproject <command> [options]"
+    echo "Usage: fenicsgpuproject <command> [options]"
     echo ""
-    echo "  fenicsproject run [image] [command]   - run a simple FEniCS session."
-    echo "  fenicsproject create <name> [image]   - create standard project with given name."
-    echo "  fenicsproject notebook <name> [image] - create notebook project with given name."
-    echo "  fenicsproject start <name>            - start session in project with given name."
-    echo "  fenicsproject pull <image>            - pull latest version of given image."
-    echo "  fenicsproject clean-cache [image]     - clean the shared FEniCS (Instant) cache."
+    echo "  fenicsgpuproject run [image] [command]   - run a simple FEniCS session."
+    echo "  fenicsgpuproject create <name> [image]   - create standard project with given name."
+    echo "  fenicsgpuproject notebook <name> [image] - create notebook project with given name."
+    echo "  fenicsgpuproject start <name>            - start session in project with given name."
+    echo "  fenicsgpuproject pull <image>            - pull latest version of given image."
+    echo "  fenicsgpuproject clean-cache [image]     - clean the shared FEniCS (Instant) cache."
 
     echo ""
-    echo "Use 'fenicsproject run' for simple (non-persistent) FEniCS sessions."
+    echo "Use 'fenicsgpuproject run' for simple (non-persistent) FEniCS sessions."
     echo ""
     echo "For persistent sessions, use 'create' or 'notebook' followed by 'start'"
     echo "to (re)start a session."
@@ -115,9 +115,6 @@ help ()
     echo "  dev     - latest development version, master branch"
     echo "  dev-env - development environment including dependencies but not FEniCS"
     echo ""
-    echo "You can update to the latest version of this script at any time using:"
-    echo ""
-    echo "  curl -s https://get.fenicsproject.org | bash"
     echo ""
     echo "For more details and tips, see our FEniCS Docker page:"
     echo ""
@@ -167,10 +164,13 @@ get_ip_port () {
         IP=$(docker-machine ip $ACTIVE_MACHINE)
     elif [[ "$OS" == "Docker" ]]; then
         IP=$(docker inspect --format="{{ ( index (index .NetworkSettings.Ports \"$PORT/tcp\") 0).HostIp }}" $NAME 2>/dev/null)
+        #IP=$(docker inspect -f "{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}'" $NAME)
         if [[ "$IP" = "0.0.0.0" ]]; then
             # 0.0.0.0 isn't a valid connnect, so use 127
             IP="127.0.0.1"
         fi
+    elif [[ "$OS" == "Linux" ]]; then
+        IP=$(docker inspect -f "{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}" $NAME)
     else
         IP="localhost"
     fi
@@ -179,12 +179,12 @@ get_ip_port () {
 
 log_mpl_port () {
     read IP MPL_PORT < <(get_ip_port $1 ${DOCKER_MPL_PORT})
-    echo -e "${BLUE}After calling 'plt.show()' you can access matplotlib plots at http://${IP}:${MPL_PORT}${NORMAL}"
+    echo -e "${BLUE}After calling 'plt.show()' you can access matplotlib plots at http://${IP}:${DOCKER_MPL_PORT}${NORMAL}"
 }
 
 log_nb_port () {
     read IP NB_PORT < <(get_ip_port $1 ${DOCKER_NB_PORT})
-    echo -e "${BLUE}You can access the Jupyter notebook at http://${IP}:${NB_PORT}${NORMAL}"
+    echo -e "${BLUE}You can access the Jupyter notebook at http://${IP}:${DOCKER_NB_PORT}${NORMAL}"
 }
 
 run ()
@@ -203,10 +203,12 @@ run ()
            --env DIJITSO_CACHE_DIR=$CACHE_DIR_CONTAINER/dijitso \
            -v $PROJECT_DIR_HOST:$PROJECT_DIR_CONTAINER \
            -w $PROJECT_DIR_CONTAINER \
+           --gpus all
            --label org.fenicsproject.created_by_script=true \
            $IMAGE '$COMMAND'"
 
-    NAME=$(command $CMD | tee /dev/tty | tail -n 1)
+    echo "[$CMD]" | tr -s " "; echo ""
+    NAME=$(command $CMD | tail -n 1)
     command docker start $NAME
 
     log_mpl_port $NAME
@@ -282,6 +284,7 @@ create ()
            $SHARE_SRC_DIR \
            $VOLUME_BUILD_DIR \
            $CAPABILITIES \
+           --gpus all
            -w $PROJECT_DIR_CONTAINER \
            $IMAGE $DEFAULT_COMMAND"
     command $CMD
@@ -290,7 +293,7 @@ create ()
     echo ""
     echo -e "To ${BLUE}start the session${NORMAL}, type the following command:"
     echo ""
-    echo "  fenicsproject start $NAME"
+    echo "  fenicsgpuproject start $NAME"
     echo ""
     echo "You will find the current working directory $PROJECT_DIR_HOST under ~/shared."
 }
@@ -352,15 +355,16 @@ notebook ()
            -w /home/fenics \
            --label org.fenicsproject.created_by_script=true \
            --label org.fenicsproject.project_type='notebook' \
+           --gpus all \
            --name $NAME \
-           $IMAGE 'jupyter-notebook --ip=0.0.0.0'"
+           $IMAGE 'jupyter-notebook --ip=0.0.0.0 --no-browser --allow-root'"
     command $CMD
 
     # Print summary
     echo ""
     echo -e "To ${BLUE}start the session${NORMAL}, type the following command:"
     echo ""
-    echo "  fenicsproject start $NAME"
+    echo "  fenicsgpuproject start $NAME"
     echo ""
     echo "You will find the current working directory $PROJECT_DIR_HOST under ~/shared."
 }
@@ -377,7 +381,7 @@ check_name () {
         echo -e "${RED}Error${NORMAL}: Project $NAME does not exist."
         echo "You can create a project with the command:"
         echo ""
-        echo "    fenicsproject create $NAME"
+        echo "    fenicsgpuproject create $NAME"
         echo ""
         echo "and then try running this command again." 
         exit 1 
@@ -406,7 +410,7 @@ fail_if_project_already_exists () {
 preprocess_image_name () {
     IMAGE=$1
     # Check if we have a fully qualified image name, e.g. quay.io/dolfinadjoint/dolfin-adjoint
-    if [[ "$IMAGE" == *\/* ]]; then
+    if [[ "$IMAGE" == *:* ]]; then
         :
         # Do nothing, user passing their own fully qualified image name and we assume
         # they know what they are doing. 
@@ -445,10 +449,10 @@ fail_if_home_directory ()
         echo ""
         echo "    mkdir ${HOME}/my-project"
         echo ""
-        echo -e "and then run the ${BLUE}fenicsproject${NORMAL} script there:"
+        echo -e "and then run the ${BLUE}fenicsgpuproject${NORMAL} script there:"
         echo ""
         echo "    cd ${HOME}/my-project"
-        echo "    fenicsproject $@"
+        echo "    fenicsgpuproject $@"
         exit 1
     fi
 }
