@@ -31,3 +31,7 @@ docker build -t "${OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_IMAGE_TAG}" --build-arg "PRE
 # 6. Extend previous image with fenics using a modified fenics stable Dockerfile which receives ARG=PREV_IMAGE_TAG
 export OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_FENICS_IMAGE_TAG=${OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_IMAGE_TAG}-fenics
 docker build -t "${OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_FENICS_IMAGE_TAG}" --build-arg "PREV_IMAGE_TAG=${OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_IMAGE_TAG}" "${HOME_DIR}/dockerfiles/stable"
+
+# 7. Extend previous image with dolfin-adjoint using a modified dolfin-adjoint stable Dockerfile which receives ARG=PREV_IMAGE_TAG
+export OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_FENICS_DOLFIN_ADJOINT_IMAGE_TAG=${OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_FENICS_IMAGE_TAG}-dolfin-adjoint
+docker build -t "${OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_FENICS_DOLFIN_ADJOINT_IMAGE_TAG}" --build-arg "PREV_IMAGE_TAG=${OS_BASE_CUDA_RUNTIME_DEVEL_PETSC_FENICS_IMAGE_TAG}" "${HOME_DIR}/dockerfiles/dolfin-adjoint"
