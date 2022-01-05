@@ -1,6 +1,6 @@
-# NVIDIA CUDA powered Docker with PETSc for FEniCS and dolfin-adjoint
+# NVIDIA CUDA powered Docker, PETSc for FEniCS
 
-This repository contains the scripts for building a CUDA powered Docker image for [FEniCS](http://fenicsproject.org) with [dolfin-adjoint](http://www.dolfin-adjoint.org/). This is done by using the original Docker files of the fenicsproject, which can be found at [fenics-project/docker](https://bitbucket.org/fenics-project/docker/) and expand these with the [NVIDIA CUDA Docker Images](https://gitlab.com/nvidia/container-images/cuda) and the [dolfin-adjoint/docker](https://bitbucket.org/dolfin-adjoint/dolfin-adjoint/src/master/docker/dolfin-adjoint/).
+This repository contains the scripts for building a CUDA powered Docker image for [FEniCS](http://fenicsproject.org). This is done by using the original Docker files of the fenicsproject, which can be found at [fenics-project/docker](https://bitbucket.org/fenics-project/docker/) and expand these with the [NVIDIA CUDA Docker Images](https://gitlab.com/nvidia/container-images/cuda).
 
 
 ## Requirements on host PC
@@ -21,7 +21,6 @@ This repository contains the scripts for building a CUDA powered Docker image fo
 4. The previous image is expanded with an adjusted version of the [CUDA 10.1 devel image for Ubuntu 18.04 x86_64](https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/10.1/ubuntu18.04-x86_64/devel/Dockerfile)
 5. The previous image is expanded with an adjusted version of the [fenics-project/docker dev-env](https://bitbucket.org/fenics-project/docker/src/master/dockerfiles/dev-env/) image, which builds PETSc with CUDA support.
 6. The previous image is expanded with an adjusted version of the [fenics-project/docker stable](https://bitbucket.org/fenics-project/docker/src/master/dockerfiles/stable/) image, which builds fenics.
-7. The previous image is expanded with an adjusted version of the [dolfin-adjoint/docker](https://bitbucket.org/dolfin-adjoint/dolfin-adjoint/src/master/docker/dolfin-adjoint/) image, which builds dolfin-adjoint
 
 This now gives us an image with the fenics applications, which is able to utilize the NVIDIA GPU on the Server. A container can be run by the adjusted.
 
@@ -33,7 +32,6 @@ An adapted version of the `fenicsproject` helper script is provided in `bin/feni
 * CUDA Driver version 10.1
 * PETSc version X.XX --with-cuda
 * fenics version 2019
-* dolfin-adjoint master
     
 ## Authors
 * Jack S. Hale (<jack.hale@uni.lu>)
