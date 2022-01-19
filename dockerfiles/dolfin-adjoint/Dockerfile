@@ -1,15 +1,14 @@
 # Builds a Docker image with dolfin-adjoint stable version built from
 # git sources. The image is at:
 #
-#    https://quay.io/repository/dolfinadjoint/dolfin-adjoint
+#    https://quay.io/repository/dolfinadjoint/dev-dolfin-adjoint
 #
 # Authors:
 # Simon W. Funke <simon@simula.no>
 # Jack S. Hale <jack.hale@uni.lu>
 
-#Adjusted
+#Added
 ARG PREV_IMAGE_TAG
-
 FROM ${PREV_IMAGE_TAG}
 
 MAINTAINER Simon W. Funke <simon@simula.no>
@@ -25,6 +24,9 @@ RUN /bin/bash -l -c "pip3 install --no-cache --ignore-installed scipy"
 
 COPY --chown=fenics dolfin-adjoint.conf $FENICS_HOME/dolfin-adjoint.conf
 
+#Added copy coinhsl.tar.gz to docker image
+COPY --chown=fenics *.tar.gz $FENICS_HOME/src/coinhsl.tar.gz
+
 ARG IPOPT_VER=3.12.9
 RUN /bin/bash -l -c "source $FENICS_HOME/dolfin-adjoint.conf && \
                      update_ipopt && \
@@ -33,14 +35,15 @@ RUN /bin/bash -l -c "source $FENICS_HOME/dolfin-adjoint.conf && \
 ARG MOOLA_BRANCH="master"
 RUN /bin/bash -l -c "pip3 install --no-cache git+git://github.com/funsim/moola.git@${MOOLA_BRANCH}"
 
-ARG DOLFIN_ADJOINT_BRANCH="2019.1.0"
-RUN /bin/bash -l -c "pip3 install --no-cache git+https://github.com/dolfin-adjoint/pyadjoint.git@${DOLFIN_ADJOINT_BRANCH}"
+ARG DOLFIN_ADJOINT_REPO="https://github.com/dolfin-adjoint/pyadjoint"
+ARG DOLFIN_ADJOINT_BRANCH="master"
+RUN /bin/bash -l -c "pip3 install --no-cache git+${DOLFIN_ADJOINT_REPO}@${DOLFIN_ADJOINT_BRANCH}"
 
 USER fenics
 COPY --chown=fenics WELCOME $FENICS_HOME/WELCOME
 RUN echo "source $FENICS_HOME/dolfin-adjoint.conf" >> $FENICS_HOME/.bash_profile
 
 RUN /bin/bash -l -c "python3 -c \"import fenics_adjoint\""
-#RUN /bin/bash -l -c "python3 -c \"import dolfin; import pyadjoint.ipopt\""
+RUN /bin/bash -l -c "python3 -c \"import dolfin; import pyadjoint.ipopt\""
 
 USER root
